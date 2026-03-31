@@ -1,0 +1,12 @@
+{
+  "project_root": ".",
+  "db_file": "data/lora_eval.db",
+  "assets_root": "data/assets",
+  "logs_root": "data/logs",
+  "recipes_root": "data/recipes",
+  "tmp_root": "data/tmp",
+  "lab_dumps_root": "data/lab_dumps",
+  "lora_root": "data/loras",
+  "workflows_root": "config/workflows",
+  "workflows_staging_root": "config/workflows/staging"
+}

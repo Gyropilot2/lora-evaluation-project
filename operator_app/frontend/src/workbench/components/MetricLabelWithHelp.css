@@ -1,0 +1,16 @@
+.metric-label-help {
+  min-width: 0;
+}
+
+.metric-label-help.is-described {
+  cursor: help;
+  text-decoration-line: underline;
+  text-decoration-style: dotted;
+  text-decoration-thickness: 1px;
+  text-decoration-color: #446176;
+  text-underline-offset: 0.18em;
+}
+
+.metric-label-help.is-described:hover {
+  text-decoration-color: #83d4ff;
+}

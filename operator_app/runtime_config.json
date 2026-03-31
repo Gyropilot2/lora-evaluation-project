@@ -1,0 +1,14 @@
+{
+  "backend": {
+    "host": "127.0.0.1",
+    "port": 8765,
+    "healthz_path": "/api/healthz"
+  },
+  "frontend": {
+    "host": "127.0.0.1",
+    "port": 4173
+  },
+  "cors_allowed_origins": [
+    "http://127.0.0.1:4173"
+  ]
+}

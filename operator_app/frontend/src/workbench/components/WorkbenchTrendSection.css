@@ -1,0 +1,22 @@
+.trend-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.trend-summary-stat {
+  border: 1px solid #262626;
+  background: #121212;
+  padding: 8px;
+}
+
+.trend-summary-stat strong {
+  display: block;
+  margin-bottom: 4px;
+  color: #dfe8ef;
+}
+
+.trend-summary-stat span {
+  color: #f0aa64;
+}

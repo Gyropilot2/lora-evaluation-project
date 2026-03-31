@@ -1,0 +1,48 @@
+.compare-tray {
+  border: 1px solid #2a475d;
+  background: #151c24;
+  padding: 6px 8px;
+}
+
+.compare-tray-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+  color: #83d4ff;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.74rem;
+}
+
+.compare-tray-header button {
+  border: 1px solid #2a475d;
+  background: #12202c;
+  color: #c4d3df;
+  border-radius: 2px;
+  padding: 1px 6px;
+  cursor: pointer;
+}
+
+.compare-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.compare-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #32536b;
+  background: #101920;
+  color: #d7e3ec;
+  border-radius: 2px;
+  padding: 3px 6px;
+  cursor: pointer;
+}
+
+.compare-chip.is-focused {
+  border-color: #83d4ff;
+  color: #83d4ff;
+}
