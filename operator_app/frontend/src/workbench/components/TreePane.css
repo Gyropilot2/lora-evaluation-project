@@ -1,0 +1,164 @@
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #2d2d2d;
+}
+
+.sidebar-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  border: 1px solid #262626;
+  border-width: 0 0 1px;
+  background: #171717;
+}
+
+.sidebar-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-height: 28px;
+}
+
+.sidebar-actions button {
+  border: 1px solid #27455a;
+  background: #152432;
+  color: #c4d3df;
+  border-radius: 3px;
+  padding: 3px 8px;
+  cursor: pointer;
+}
+
+.sidebar-actions button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.sidebar-toolbar input {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #2a475d;
+  border-radius: 3px;
+  background: #101b25;
+  color: #d7e3ec;
+}
+
+.tree {
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 3px 0;
+}
+
+.status-copy {
+  color: #8ea3b4;
+  padding: 8px 2px 14px;
+}
+
+.status-error {
+  color: #ff8d72;
+}
+
+.tree-group,
+.tree-branch {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.tree-branch {
+  margin-left: 12px;
+  padding-left: 8px;
+  border-left: 1px solid #21445b;
+}
+
+.tree-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 1px 8px;
+  min-height: 24px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.tree-focus {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 0;
+  border-left: 2px solid transparent;
+  background: transparent;
+  color: #d7e3ec;
+  border-radius: 0;
+  padding: 2px 6px;
+  cursor: pointer;
+  text-align: left;
+  line-height: 1.22;
+  overflow-wrap: anywhere;
+}
+
+.tree-focus.is-focused {
+  border-left-color: #83d4ff;
+  color: #83d4ff;
+  background: #1e2931;
+}
+
+.tree-focus[disabled] {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.tree-method .tree-focus {
+  width: 100%;
+  justify-content: flex-start;
+}
+
+.tree-row input[type="checkbox"] {
+  width: 11px;
+  height: 11px;
+  accent-color: #83d4ff;
+}
+
+.tree-inline-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+
+.tree-mini-action {
+  border: 1px solid #2a475d;
+  background: #12202c;
+  color: #8fcdf0;
+  border-radius: 2px;
+  min-width: 30px;
+  padding: 0 4px;
+  font-size: 0.68rem;
+  line-height: 1.4;
+  cursor: pointer;
+  text-align: center;
+}
+
+.tree-toggle {
+  width: 16px;
+  height: 16px;
+  border: 1px solid #2a475d;
+  background: #12202c;
+  color: #8fcdf0;
+  border-radius: 2px;
+  padding: 0;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.tree-indent {
+  width: 16px;
+  flex: 0 0 16px;
+}
+
+.tree-loading {
+  color: #8ea3b4;
+  padding: 4px 8px;
+}

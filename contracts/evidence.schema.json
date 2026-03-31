@@ -1,0 +1,958 @@
+{
+  "_meta": {
+    "version": "2.0.0",
+    "description": "Evidence contract — facts-only field definitions for LoRA evaluation. Three object types: Method, Eval, Sample.",
+    "generated": "2026-02-28",
+    "notes": [
+      "Evidence is nested: related fields live under domain-object parents (e.g. lora.hash, conditioning.positive_hash).",
+      "Fields may hold a normal value OR an Invalid wrapper {status: NULL|ERROR|NOT_APPLICABLE, ...}.",
+      "invalid_wrapper: true means the field may legally hold an Invalid wrapper instead of a normal value.",
+      "required: true means Bouncer emits SCHEMA.MISSING_FIELD (WARN/ERROR) if the field is absent.",
+      "vital: true means Bouncer hard-refuses the entire record if the field is absent (nothing written to DB).",
+      "Unknown keys at ingestion time are separated into _extras — never stored in the core record.",
+      "GENERATIVE vs MEASUREMENT SPLIT: Method record contains only generative harness inputs (fields that",
+      "causally determine the output, minus LoRA/seed/strength). Measurement instruments (ClipVision,",
+      "InsightFace, masks, aux images) are NOT hash-components and are stored in sample_record measurement domains.",
+      "See Constitution: Generative inputs vs measurement instruments.",
+      "OPEN-ENDED KEYSPACES: clip_vision keyed by model_hash[:16] (per S-21); masks and aux keyed by",
+      "user-provided name strings. Only these three keyspaces are open-ended; all other domains are fixed-key.",
+      "SAMPLE IDENTITY: sample.hash = BLAKE3(eval.hash, seed, lora_strength). Deterministic before generation.",
+      "latent_hash is stored as a vital integrity field for NOT_ZERO_DELTA detection, NOT as the identity key.",
+      "REVIEW OUTPUTS: derived comparison metrics like img_px_diff and clip_global_cos_dist are assembled review outputs,",
+      "NOT Evidence fields. Evidence stores raw facts only."
+    ]
+  },
+  "vital_fields": {
+    "method_record": [
+      "method_hash"
+    ],
+    "eval_record": [
+      "eval_hash",
+      "method_hash"
+    ],
+    "sample_record": [
+      "sample_hash",
+      "eval_hash",
+      "seed",
+      "latent_hash",
+      "image_hash"
+    ]
+  },
+  "hash_components": {
+    "method_hash": {
+      "description": "BLAKE3 hash of canonical JSON over these fields (null hashes as JSON null, not as Invalid wrapper)",
+      "components": [
+        "base_model.hash",
+        "vae_model.hash",
+        "conditioning.positive_hash",
+        "conditioning.positive_guidance",
+        "conditioning.negative_hash",
+        "conditioning.negative_guidance",
+        "settings.steps",
+        "settings.denoise",
+        "settings.sampler",
+        "settings.scheduler",
+        "settings.cfg",
+        "latent.width",
+        "latent.height",
+        "latent.shape",
+        "model_extras"
+      ]
+    },
+    "eval_hash": {
+      "description": "BLAKE3 hash of (method_hash, lora.hash). lora.hash is null for Baseline evals.",
+      "components": [
+        "method_hash",
+        "lora.hash"
+      ]
+    },
+    "sample_hash": {
+      "description": "BLAKE3 hash of (eval_hash, seed, lora_strength). lora_strength is null for Baseline samples.",
+      "components": [
+        "eval_hash",
+        "seed",
+        "lora_strength"
+      ]
+    }
+  },
+  "shared_types": {
+    "invalid_wrapper": {
+      "description": "Wraps a missing, failed, or inapplicable field value. Never use JSON null.",
+      "shape": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "NULL",
+            "ERROR",
+            "NOT_APPLICABLE"
+          ],
+          "required": true
+        },
+        "reason_code": {
+          "type": "string",
+          "required": false,
+          "description": "Stable code string (e.g. MISSING_LORA_NAME)"
+        },
+        "detail": {
+          "type": "string",
+          "required": false,
+          "description": "Short explanation"
+        }
+      }
+    },
+    "valueref": {
+      "description": "Portable content-addressed reference to a non-JSON asset (embedding, image, mask, etc.).",
+      "shape": {
+        "valueref_version": {
+          "type": "integer",
+          "required": true,
+          "description": "ValueRef schema version (currently 1)"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "asset_ref"
+          ],
+          "required": true
+        },
+        "asset_type": {
+          "type": "string",
+          "required": true,
+          "description": "Semantic type: embedding | image | mask | luminance | aux"
+        },
+        "format": {
+          "type": "string",
+          "required": true,
+          "description": "File format: npy | png"
+        },
+        "content_hash": {
+          "type": "object",
+          "required": true,
+          "shape": {
+            "algo": {
+              "type": "string",
+              "required": true,
+              "description": "Always blake3"
+            },
+            "digest": {
+              "type": "string",
+              "required": true,
+              "description": "Hex digest string"
+            }
+          }
+        },
+        "path": {
+          "type": "string",
+          "required": true,
+          "description": "Relative path to the asset under assets_root"
+        },
+        "dtype": {
+          "type": "string",
+          "required": false,
+          "description": "Data type for array/tensor assets (e.g. float32)"
+        },
+        "shape": {
+          "type": "array",
+          "items": "integer",
+          "required": false,
+          "description": "Shape for array/tensor assets (e.g. [1024, 1024, 3])"
+        }
+      }
+    },
+    "pixel_stats": {
+      "description": "Basic pixel statistics inline in Evidence (avoids loading asset for simple queries).",
+      "shape": {
+        "min": {
+          "type": "number",
+          "required": true
+        },
+        "max": {
+          "type": "number",
+          "required": true
+        },
+        "mean": {
+          "type": "number",
+          "required": true
+        },
+        "std": {
+          "type": "number",
+          "required": true
+        }
+      }
+    },
+    "diagnostic_record": {
+      "description": "A structured diagnostic record attached to a sample.",
+      "shape": {
+        "severity": {
+          "type": "string",
+          "enum": [
+            "DEBUG",
+            "INFO",
+            "WARN",
+            "ERROR",
+            "FATAL"
+          ],
+          "required": true
+        },
+        "code": {
+          "type": "string",
+          "required": true,
+          "description": "Stable dot-separated identifier from diagnostic_codes registry"
+        },
+        "where": {
+          "type": "string",
+          "required": true,
+          "description": "module.class.function origin tag"
+        },
+        "msg": {
+          "type": "string",
+          "required": true
+        },
+        "ctx": {
+          "type": "object",
+          "required": false
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "iso8601",
+          "required": true
+        }
+      }
+    }
+  },
+  "method_record": {
+    "description": "Generative harness: everything that causally determines an output except LoRA identity, seed, and LoRA strength. Stored in Methods table.",
+    "table": "methods",
+    "json_column": "inputs_json",
+    "promoted_columns": [
+      "method_hash",
+      "base_hash",
+      "vae_hash",
+      "created_at",
+      "is_dirty"
+    ],
+    "fields": {
+      "method_hash": {
+        "type": "string",
+        "format": "blake3_hex",
+        "required": true,
+        "invalid_wrapper": false,
+        "vital": true,
+        "description": "BLAKE3 hash of all Method HashComponents (canonical serialization). Primary key and dedup key."
+      },
+      "extractor_version": {
+        "type": "string",
+        "required": true,
+        "invalid_wrapper": false,
+        "description": "Semantic version of the extractor that produced this record"
+      },
+      "timestamp": {
+        "type": "string",
+        "format": "iso8601",
+        "required": true,
+        "invalid_wrapper": false,
+        "description": "ISO-8601 timestamp of extraction"
+      },
+      "is_dirty": {
+        "type": "boolean",
+        "required": true,
+        "invalid_wrapper": false,
+        "description": "True if any error condition detected on this Method; taints all Evals/Samples under it"
+      },
+      "base_model": {
+        "type": "object",
+        "required": true,
+        "description": "Base model checkpoint used for sampling",
+        "fields": {
+          "name": {
+            "type": "string",
+            "required": false,
+            "invalid_wrapper": true,
+            "description": "Display base model name (e.g. FLUX.1-dev)"
+          },
+          "hash": {
+            "type": "string",
+            "format": "blake3_hex",
+            "required": true,
+            "invalid_wrapper": true,
+            "description": "BLAKE3 fast-hash of base model file (header + first 64KB of tensor data) — HashComponent"
+          }
+        }
+      },
+      "vae_model": {
+        "type": "object",
+        "required": true,
+        "description": "VAE used to decode the latent. Part of method.hash because different VAE = different decoded image.",
+        "fields": {
+          "name": {
+            "type": "string",
+            "required": false,
+            "invalid_wrapper": true,
+            "description": "Display VAE name (e.g. ae.safetensors)"
+          },
+          "hash": {
+            "type": "string",
+            "format": "blake3_hex",
+            "required": true,
+            "invalid_wrapper": true,
+            "description": "BLAKE3 fast-hash of VAE file — HashComponent"
+          }
+        }
+      },
+      "conditioning": {
+        "type": "object",
+        "required": true,
+        "description": "Conditioning tensors used during sampling. Hashed by content, not by prompt text.",
+        "fields": {
+          "positive_hash": {
+            "type": "string",
+            "format": "blake3_hex",
+            "required": true,
+            "invalid_wrapper": true,
+            "description": "BLAKE3 of the positive conditioning tensor(s) — HashComponent"
+          },
+          "positive_text": {
+            "type": "string",
+            "required": false,
+            "invalid_wrapper": true,
+            "description": "Raw positive prompt text — informational only, not a HashComponent"
+          },
+          "positive_guidance": {
+            "type": "number",
+            "required": false,
+            "invalid_wrapper": true,
+            "description": "Per-conditioning guidance scale if present (Flux/SDXL embedded guidance) — HashComponent; null hashes as-is"
+          },
+          "negative_hash": {
+            "type": "string",
+            "format": "blake3_hex",
+            "required": true,
+            "invalid_wrapper": true,
+            "description": "BLAKE3 of the negative conditioning tensor(s) — HashComponent; required even if all-zero (Flux)"
+          },
+          "negative_text": {
+            "type": "string",
+            "required": false,
+            "invalid_wrapper": true,
+            "description": "Raw negative prompt text — informational only, not a HashComponent"
+          },
+          "negative_guidance": {
+            "type": "number",
+            "required": false,
+            "invalid_wrapper": true,
+            "description": "Per-conditioning guidance scale for negative (if present) — HashComponent; null hashes as-is"
+          }
+        }
+      },
+      "settings": {
+        "type": "object",
+        "required": true,
+        "description": "KSampler settings that causally affect the output — all are HashComponents",
+        "fields": {
+          "steps": {
+            "type": "integer",
+            "required": true,
+            "invalid_wrapper": true,
+            "description": "Number of sampling steps"
+          },
+          "denoise": {
+            "type": "number",
+            "required": true,
+            "invalid_wrapper": true,
+            "description": "Denoising strength (1.0 for text2img)"
+          },
+          "sampler": {
+            "type": "string",
+            "required": true,
+            "invalid_wrapper": true,
+            "description": "Sampler name (e.g. euler, dpmpp_2m)"
+          },
+          "scheduler": {
+            "type": "string",
+            "required": true,
+            "invalid_wrapper": true,
+            "description": "Noise schedule (e.g. normal, karras)"
+          },
+          "cfg": {
+            "type": "number",
+            "required": true,
+            "invalid_wrapper": true,
+            "description": "Classifier-free guidance scale"
+          }
+        }
+      },
+      "latent": {
+        "type": "object",
+        "required": true,
+        "description": "Input latent dimensions — HashComponents; null values hash as-is",
+        "fields": {
+          "width": {
+            "type": "integer",
+            "required": true,
+            "invalid_wrapper": true,
+            "description": "Latent width in pixels"
+          },
+          "height": {
+            "type": "integer",
+            "required": true,
+            "invalid_wrapper": true,
+            "description": "Latent height in pixels"
+          },
+          "shape": {
+            "type": "array",
+            "items": {"type": "integer"},
+            "required": true,
+            "invalid_wrapper": true,
+            "description": "Full latent tensor shape [B, C, H_latent, W_latent]. C=4 for SD/SDXL, C=16 for SD3/Flux."
+          }
+        }
+      },
+      "model_extras": {
+        "type": "string",
+        "format": "blake3_hex",
+        "required": false,
+        "invalid_wrapper": true,
+        "description": "Fingerprint of any non-base, non-LoRA pipeline extras attached via model_options (e.g. custom CFG wrappers, attention patches) — HashComponent; null for standard configurations"
+      },
+      "workflow_ref": {
+        "type": "valueref",
+        "required": false,
+        "invalid_wrapper": false,
+        "description": "Stored workflow declaration artifact used to orchestrate or replay this Method. Informational/orchestration-only; not a HashComponent and not Method identity."
+      }
+    }
+  },
+  "eval_record": {
+    "description": "LoRA identity under a Method. Groups all (seed × lora_strength) samples for one (method + LoRA) pair. Stored in Evals table.",
+    "table": "evals",
+    "json_column": "inputs_json",
+    "promoted_columns": [
+      "eval_hash",
+      "method_hash",
+      "lora_hash",
+      "created_at",
+      "is_dirty"
+    ],
+    "fields": {
+      "eval_hash": {
+        "type": "string",
+        "format": "blake3_hex",
+        "required": true,
+        "invalid_wrapper": false,
+        "vital": true,
+        "description": "BLAKE3 of (method_hash, lora.hash). Primary key and dedup key."
+      },
+      "method_hash": {
+        "type": "string",
+        "format": "blake3_hex",
+        "required": true,
+        "invalid_wrapper": false,
+        "vital": true,
+        "description": "Foreign key to parent Method record"
+      },
+      "timestamp": {
+        "type": "string",
+        "format": "iso8601",
+        "required": true,
+        "invalid_wrapper": false
+      },
+      "is_dirty": {
+        "type": "boolean",
+        "required": true,
+        "invalid_wrapper": false,
+        "description": "True if any error condition detected on this Eval"
+      },
+      "lora": {
+        "type": "object",
+        "required": true,
+        "description": "LoRA adapter under evaluation. For Baseline evals, all fields are null/Invalid — lora.hash null hashes as-is in eval_hash computation.",
+        "fields": {
+          "hash": {
+            "type": "string",
+            "format": "blake3_hex",
+            "required": false,
+            "invalid_wrapper": true,
+            "description": "BLAKE3 canonical content hash of LoRA weight tensors — primary LoRA identity; null for Baseline"
+          },
+          "file_hash": {
+            "type": "string",
+            "format": "blake3_hex",
+            "required": false,
+            "invalid_wrapper": true,
+            "description": "BLAKE3 hash of raw LoRA .safetensors file bytes — audit/forensics; null for Baseline"
+          },
+          "name": {
+            "type": "string",
+            "required": false,
+            "invalid_wrapper": true,
+            "description": "Display LoRA name — informational only, not a HashComponent"
+          },
+          "rank": {
+            "type": "integer",
+            "required": false,
+            "invalid_wrapper": true,
+            "description": "Inferred LoRA rank (network dimension) from safetensors tensor shapes"
+          },
+          "network_alpha": {
+            "type": "number",
+            "required": false,
+            "invalid_wrapper": true,
+            "description": "LoRA network alpha scaling value extracted from safetensors metadata"
+          },
+          "target_blocks": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "required": false,
+            "invalid_wrapper": true,
+            "description": "Unique targeted block prefixes inferred from tensor keys"
+          },
+          "affects_text_encoder": {
+            "type": "boolean",
+            "required": false,
+            "invalid_wrapper": true,
+            "description": "True when LoRA tensor keys indicate text encoder influence"
+          },
+          "raw_metadata": {
+            "type": "object",
+            "required": false,
+            "invalid_wrapper": true,
+            "description": "Raw __metadata__ dictionary extracted from LoRA safetensors header"
+          }
+        }
+      }
+    }
+  },
+  "sample_record": {
+    "description": "Atomic generated output: one (eval + seed + lora_strength) replicate. Stores measurement domains as ValueRefs + inline stats. Stored in Samples table.",
+    "table": "samples",
+    "json_column": "facts_json",
+    "promoted_columns": [
+      "sample_hash",
+      "eval_hash",
+      "seed",
+      "lora_strength",
+      "ingest_status",
+      "created_at",
+      "is_dirty"
+    ],
+    "fields": {
+      "sample_hash": {
+        "type": "string",
+        "format": "blake3_hex",
+        "required": true,
+        "invalid_wrapper": false,
+        "vital": true,
+        "description": "BLAKE3 of (eval_hash, seed, lora_strength). Primary key and dedup key. Deterministic before generation."
+      },
+      "eval_hash": {
+        "type": "string",
+        "format": "blake3_hex",
+        "required": true,
+        "invalid_wrapper": false,
+        "vital": true,
+        "description": "Foreign key to parent Eval record"
+      },
+      "seed": {
+        "type": "integer",
+        "required": true,
+        "invalid_wrapper": false,
+        "vital": true,
+        "description": "RNG seed used for this sample — HashComponent"
+      },
+      "lora_strength": {
+        "type": "number",
+        "required": false,
+        "invalid_wrapper": true,
+        "description": "LoRA conditioning strength — HashComponent; null for Baseline samples (hashes as-is)"
+      },
+      "latent_hash": {
+        "type": "string",
+        "format": "blake3_hex",
+        "required": true,
+        "invalid_wrapper": false,
+        "vital": true,
+        "description": "BLAKE3 of the output latent tensor bytes. NOT the identity key. Used for NOT_ZERO_DELTA detection: if same sample_hash arrives with different latent_hash → both samples dirty."
+      },
+      "image_hash": {
+        "type": "string",
+        "format": "blake3_hex",
+        "required": true,
+        "invalid_wrapper": false,
+        "vital": true,
+        "description": "BLAKE3 of the decoded image tensor bytes. Used for slot consistency: if same sample_hash arrives with different image_hash → SAMPLE.SLOT_CONFLICT."
+      },
+      "evidence_version": {
+        "type": "string",
+        "required": true,
+        "invalid_wrapper": false,
+        "description": "Evidence contract version active when this record was written (e.g. 2.0.0)"
+      },
+      "extractor_version": {
+        "type": "string",
+        "required": true,
+        "invalid_wrapper": false
+      },
+      "timestamp": {
+        "type": "string",
+        "format": "iso8601",
+        "required": true,
+        "invalid_wrapper": false
+      },
+      "ingest_status": {
+        "type": "string",
+        "enum": [
+          "OK",
+          "WARN",
+          "ERROR"
+        ],
+        "required": true,
+        "invalid_wrapper": false,
+        "description": "OK if clean; WARN for non-fatal anomalies; ERROR if any field had status=ERROR"
+      },
+      "is_dirty": {
+        "type": "boolean",
+        "required": true,
+        "invalid_wrapper": false,
+        "description": "True if Bouncer detected any structural error; review assembly excludes dirty samples by default"
+      },
+      "_note_image": "image.output is a ValueRef to the decoded output image asset (.npy or .png). Pixel stats stored inline.",
+      "image": {
+        "type": "object",
+        "required": true,
+        "fields": {
+          "output": {
+            "type": "valueref",
+            "required": true,
+            "invalid_wrapper": true,
+            "description": "ValueRef to decoded output image asset"
+          },
+          "shape": {
+            "type": "array",
+            "items": {"type": "integer"},
+            "required": false,
+            "invalid_wrapper": false,
+            "description": "Actual decoded image shape [H, W, C] — inline for quick dimension queries and to validate that actual decoded dimensions match expected latent.width × latent.height"
+          },
+          "pixel_stats": {
+            "type": "pixel_stats",
+            "required": false,
+            "invalid_wrapper": true,
+            "description": "Basic pixel statistics (min/max/mean/std) stored inline"
+          }
+        }
+      },
+      "_note_luminance": "BT.709 per-pixel luminance map Y = 0.2126R + 0.7152G + 0.0722B. Computed internally at extraction time (never from external preprocessor). Coefficients must be consistent across all samples.",
+      "luminance": {
+        "type": "object",
+        "required": true,
+        "fields": {
+          "output": {
+            "type": "valueref",
+            "required": true,
+            "invalid_wrapper": true,
+            "description": "ValueRef to float32 .npy luminance map"
+          },
+          "stats": {
+            "type": "object",
+            "required": false,
+            "invalid_wrapper": true,
+            "description": "Inline luminance statistics",
+            "fields": {
+              "mean": {
+                "type": "number",
+                "required": true
+              },
+              "std": {
+                "type": "number",
+                "required": true
+              },
+              "min": {
+                "type": "number",
+                "required": true
+              },
+              "max": {
+                "type": "number",
+                "required": true
+              }
+            }
+          }
+        }
+      },
+      "_note_clip_vision": "OPEN-ENDED KEYSPACE. Keys are model_hash[:16] (first 16 hex chars of CLIP Vision model parameter hash). Keyed by model identity, not slot index, to avoid the slot-index trap (S-21). Per slot: global_embedding (full-image encode), last_hidden_state, shape metadata, is_aliased flag, stats dict, patch_pools dict. Masked ClipVision approaches (S-31) not yet implemented — reserved for future phase.",
+      "clip_vision": {
+        "type": "object",
+        "dynamic_keys": "model_hash[:16]",
+        "required": false,
+        "description": "Per-model ClipVision outputs. Each key is the first 16 hex chars of the CV model parameter hash.",
+        "per_key_shape": {
+          "global_embedding": {
+            "type": "valueref",
+            "required": true,
+            "invalid_wrapper": true,
+            "description": "Global (full-image) CLIP Vision embedding (.npy)"
+          },
+          "last_hidden_state": {
+            "type": "valueref",
+            "required": false,
+            "invalid_wrapper": true,
+            "description": "Full last hidden state from CLIP Vision encoder (.npy)"
+          },
+          "model_hash": {
+            "type": "string",
+            "format": "blake3_hex",
+            "required": false,
+            "invalid_wrapper": false,
+            "description": "Full CLIP Vision model parameter hash (inline; slot key is model_hash[:16])"
+          },
+          "global_embedding_shape": {
+            "type": "array",
+            "items": {"type": "integer"},
+            "required": false,
+            "description": "Shape of the global embedding array"
+          },
+          "last_hidden_state_shape": {
+            "type": "array",
+            "items": {"type": "integer"},
+            "required": false,
+            "description": "Shape of the last hidden state array"
+          },
+          "is_aliased": {
+            "type": "boolean",
+            "required": false,
+            "description": "True if this slot is an alias (same model reused under a different name)"
+          },
+          "stats": {
+            "type": "object",
+            "required": false,
+            "description": "Inline statistics for the global embedding (e.g. norm, mean)"
+          },
+          "patch_pools": {
+            "type": "object",
+            "required": false,
+            "description": "Patch-pooled embeddings dict (future masked ClipVision approach)"
+          }
+        }
+      },
+      "_note_masks": "OPEN-ENDED KEYSPACE. Default set: face, background, skin, clothing, hair. Custom names accepted. All masks are provided externally by the user (segmentation preprocessors). Stored as .npy ValueRefs. Inline stats stored for quick queries without loading asset.",
+      "masks": {
+        "type": "object",
+        "dynamic_keys": "mask_name",
+        "required": false,
+        "description": "Per-mask binary arrays and stats. Keys are mask names.",
+        "per_key_shape": {
+          "output": {
+            "type": "valueref",
+            "required": true,
+            "invalid_wrapper": true,
+            "description": "ValueRef to float32 .npy mask array"
+          },
+          "pixel_stats": {
+            "type": "object",
+            "required": false,
+            "invalid_wrapper": true,
+            "fields": {
+              "coverage": {
+                "type": "number",
+                "required": true,
+                "description": "Fraction of pixels where mask > 0.5"
+              },
+              "min": {
+                "type": "number",
+                "required": true
+              },
+              "max": {
+                "type": "number",
+                "required": true
+              },
+              "mean": {
+                "type": "number",
+                "required": true
+              },
+              "std": {
+                "type": "number",
+                "required": true
+              }
+            }
+          },
+          "edge_density": {
+            "type": "number",
+            "required": false,
+            "invalid_wrapper": true,
+            "description": "Sobel edge magnitude sum within masked region, normalized"
+          }
+        }
+      },
+      "_note_face_analysis": "InsightFace ArcFace 512-dim identity embedding. Singleton per sample (best face by det_score). Raw embedding + L2-normalized embedding stored as ValueRefs (.npy); hash + stats + pose stored inline.",
+      "face_analysis": {
+        "type": "object",
+        "required": false,
+        "invalid_wrapper": true,
+        "fields": {
+          "embedding": {
+            "type": "valueref",
+            "required": false,
+            "invalid_wrapper": true,
+            "description": "ValueRef to 512-dim float32 ArcFace identity vector (.npy)"
+          },
+          "embedding_hash": {
+            "type": "string",
+            "format": "blake3_hex",
+            "required": false,
+            "invalid_wrapper": true,
+            "description": "BLAKE3 of the ArcFace vector — for quick identity comparison without loading asset"
+          },
+          "embedding_norm": {
+            "type": "number",
+            "required": false,
+            "invalid_wrapper": true,
+            "description": "L2 norm of the ArcFace vector"
+          },
+          "face_count": {
+            "type": "integer",
+            "required": false,
+            "invalid_wrapper": true,
+            "description": "Number of faces detected by InsightFace"
+          },
+          "det_score": {
+            "type": "number",
+            "required": false,
+            "invalid_wrapper": true,
+            "description": "Confidence score of the best detected face"
+          },
+          "bbox": {
+            "type": "array",
+            "items": "number",
+            "required": false,
+            "invalid_wrapper": true,
+            "description": "Bounding box of the best face: [x0, y0, x1, y1]"
+          },
+          "age": {
+            "type": "number",
+            "required": false,
+            "invalid_wrapper": true,
+            "description": "Estimated age from InsightFace (if available)"
+          },
+          "gender": {
+            "type": "string",
+            "required": false,
+            "invalid_wrapper": true,
+            "description": "Estimated gender from InsightFace (if available)"
+          },
+          "normed_embedding": {
+            "type": "valueref",
+            "required": false,
+            "invalid_wrapper": true,
+            "description": "L2-normalized ArcFace identity embedding (.npy float32 [512]); used for cosine similarity comparisons by compare.face.primary_identity_cos.v1"
+          },
+          "pose": {
+            "type": "object",
+            "required": false,
+            "invalid_wrapper": true,
+            "description": "InsightFace head pose estimate for the best detected face",
+            "fields": {
+              "pitch": {
+                "type": "number",
+                "required": true,
+                "description": "Pitch angle in degrees"
+              },
+              "yaw": {
+                "type": "number",
+                "required": true,
+                "description": "Yaw angle in degrees"
+              },
+              "roll": {
+                "type": "number",
+                "required": true,
+                "description": "Roll angle in degrees"
+              }
+            }
+          }
+        }
+      },
+      "_note_aux": "OPEN-ENDED KEYSPACE. Default live set: depth, normal, edge. Custom preprocessor labels accepted (S-34). Aux images are provided externally by the user — the Extractor does NOT run preprocessors internally. The user pairs each aux image with a STRING label; the label becomes the dict key and documents which preprocessor was used. Legacy raster aux.pose is retired; pose analysis now lives in pose_evidence.",
+      "aux": {
+        "type": "object",
+        "dynamic_keys": "preprocessor_label",
+        "required": false,
+        "description": "Auxiliary preprocessor images. Keys are user-provided labels (for example depth, normal, edge). Legacy raster pose maps are retired; pose analysis now lives in pose_evidence.",
+        "per_key_shape": {
+          "output": {
+            "type": "valueref",
+            "required": true,
+            "invalid_wrapper": true,
+            "description": "ValueRef to preprocessor output image (.npy)"
+          },
+          "pixel_stats": {
+            "type": "pixel_stats",
+            "required": false,
+            "invalid_wrapper": true,
+            "description": "Inline pixel statistics for the aux image"
+          }
+        }
+      },
+      "_note_pose_evidence": "Fixed-key structured pose evidence. Stores both the raw grouped upstream people payload and the normalized interpreted per-person evidence with support facts against MainSubject and DensePose. This is the live pose-analysis surface; legacy raster aux.pose is retired.",
+      "pose_evidence": {
+        "type": "object",
+        "required": false,
+        "description": "Structured grouped pose evidence keyed by supported body-pose source.",
+        "fields": {
+          "openpose_body": {
+            "type": "object",
+            "required": false,
+            "fields": {
+              "processor": {"type": "string", "required": true},
+              "mode": {"type": "string", "required": true},
+              "source_kind": {"type": "string", "required": true},
+              "coordinate_space": {"type": "string", "required": true},
+              "canvas_width": {"type": "integer", "required": true},
+              "canvas_height": {"type": "integer", "required": true},
+              "raw_people_count": {"type": "integer", "required": true},
+              "eligible_candidate_count": {"type": "integer", "required": true},
+              "scene_flags": {"type": "array", "required": false},
+              "raw_observation": {
+                "type": "object",
+                "required": true,
+                "fields": {
+                  "people": {"type": "array", "required": true}
+                }
+              },
+              "people": {"type": "array", "required": true}
+            }
+          },
+          "dw_body": {
+            "type": "object",
+            "required": false,
+            "fields": {
+              "processor": {"type": "string", "required": true},
+              "mode": {"type": "string", "required": true},
+              "source_kind": {"type": "string", "required": true},
+              "coordinate_space": {"type": "string", "required": true},
+              "canvas_width": {"type": "integer", "required": true},
+              "canvas_height": {"type": "integer", "required": true},
+              "raw_people_count": {"type": "integer", "required": true},
+              "eligible_candidate_count": {"type": "integer", "required": true},
+              "scene_flags": {"type": "array", "required": false},
+              "raw_observation": {
+                "type": "object",
+                "required": true,
+                "fields": {
+                  "people": {"type": "array", "required": true}
+                }
+              },
+              "people": {"type": "array", "required": true}
+            }
+          }
+        }
+      },
+      "diagnostics": {
+        "type": "array",
+        "items": "diagnostic_record",
+        "required": false,
+        "invalid_wrapper": false,
+        "description": "Structured diagnostic records emitted during extraction and validation for this sample"
+      }
+    }
+  }
+}

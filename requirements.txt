@@ -1,0 +1,4 @@
+blake3
+numpy
+Pillow
+requests

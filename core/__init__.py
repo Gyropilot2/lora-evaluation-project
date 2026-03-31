@@ -1,0 +1,1 @@
+# core — path configuration helpers

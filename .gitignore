@@ -1,0 +1,39 @@
+# Compiled Python
+__pycache__/
+*.py[codz]
+*$py.class
+*.so
+
+# Virtual environments (recreated by pip install)
+.venv
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+operator_app/backend/.venv/
+
+# Node / frontend build (recreated by npm install / npm run build)
+operator_app/frontend/node_modules/
+operator_app/frontend/dist/
+operator_app/frontend/.vite/
+operator_app/frontend/*.tsbuildinfo
+operator_app/frontend/vite.config.js
+operator_app/frontend/vite.config.d.ts
+
+# Tool caches
+.ruff_cache/
+.mypy_cache/
+.dmypy.json
+.pytest_cache/
+.hypothesis/
+.coverage
+.coverage.*
+
+# Local project outputs
+# Keep data/lora_eval.db only when we intentionally ship the sample dataset.
+data/logs/diagnostics.jsonl
+data/tmp/*
+!data/tmp/.gitkeep
+data/exports/lora_review.json
+data/exports/archive_analyzer_smoke.html

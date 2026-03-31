@@ -1,0 +1,724 @@
+{
+  "4": {
+    "inputs": {
+      "samples": [
+        "344:336",
+        0
+      ],
+      "vae": [
+        "232",
+        1
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE Decode"
+    }
+  },
+  "29": {
+    "inputs": {
+      "value": "A sharp in-focus photorealistic photograph of a 30-year-old woman with straight shoulder-length brown hair tucked behind both ears, light brown eyes, clear skin, no visible makeup, standing perfectly upright facing directly into the camera with both eyes open and a completely neutral closed-mouth expression, shoulders square and relaxed, both arms hanging straight at her sides, feet together, wearing a plain solid medium-grey short-sleeve crew-neck cotton t-shirt with no logos no text no patterns, straight-leg dark blue denim jeans with no distressing, plain white low-top canvas sneakers, standing centered in frame against a completely flat matte off-white wall with no texture no shadows no markings no windows no doors no furniture no objects no background elements of any kind, lit by perfectly even soft neutral daylight-balanced overhead diffuse studio light with no directional shadows no rim light no backlight no colored light no dramatic contrast, photographed at eye level with a 50mm lens at f/4 focused precisely on the face, no motion blur no grain no vignette no artistic processing, photorealistic documentary photography, not illustrated not painted not stylized not cinematic not fantasy not dramatic not artistic not rendered\n"
+    },
+    "class_type": "PrimitiveStringMultiline",
+    "_meta": {
+      "title": "String (Multiline)"
+    }
+  },
+  "36": {
+    "inputs": {
+      "clip_name": "siglip2-so400m-patch16-512.safetensors"
+    },
+    "class_type": "CLIPVisionLoader",
+    "_meta": {
+      "title": "Load CLIP Vision"
+    }
+  },
+  "37": {
+    "inputs": {
+      "images": [
+        "231",
+        1
+      ]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "Preview Image"
+    }
+  },
+  "39": {
+    "inputs": {
+      "conditioning": [
+        "339",
+        0
+      ]
+    },
+    "class_type": "ConditioningZeroOut",
+    "_meta": {
+      "title": "ConditioningZeroOut"
+    }
+  },
+  "51": {
+    "inputs": {
+      "clip_name": "clip-vit-large-patch14.safetensors"
+    },
+    "class_type": "CLIPVisionLoader",
+    "_meta": {
+      "title": "Load CLIP Vision"
+    }
+  },
+  "96": {
+    "inputs": {
+      "image": [
+        "4",
+        0
+      ]
+    },
+    "class_type": "GetImageSize+",
+    "_meta": {
+      "title": "🔧 Get Image Size"
+    }
+  },
+  "143": {
+    "inputs": {
+      "model": "RMBG-2.0",
+      "sensitivity": 1,
+      "process_res": 1024,
+      "mask_blur": 0,
+      "mask_offset": 0,
+      "invert_output": false,
+      "refine_foreground": false,
+      "background": "Alpha",
+      "background_color": "#222222",
+      "image": [
+        "4",
+        0
+      ]
+    },
+    "class_type": "RMBG",
+    "_meta": {
+      "title": "Remove Background (RMBG)"
+    }
+  },
+  "157": {
+    "inputs": {
+      "preprocessor": "DepthAnythingV2Preprocessor",
+      "resolution": [
+        "355",
+        0
+      ],
+      "image": [
+        "4",
+        0
+      ]
+    },
+    "class_type": "AIO_Preprocessor",
+    "_meta": {
+      "title": "AIO Aux Preprocessor"
+    }
+  },
+  "159": {
+    "inputs": {
+      "preprocessor": "DSINE-NormalMapPreprocessor",
+      "resolution": [
+        "355",
+        0
+      ],
+      "image": [
+        "4",
+        0
+      ]
+    },
+    "class_type": "AIO_Preprocessor",
+    "_meta": {
+      "title": "AIO Aux Preprocessor"
+    }
+  },
+  "160": {
+    "inputs": {
+      "preprocessor": "LineArtPreprocessor",
+      "resolution": [
+        "355",
+        0
+      ],
+      "image": [
+        "4",
+        0
+      ]
+    },
+    "class_type": "AIO_Preprocessor",
+    "_meta": {
+      "title": "AIO Aux Preprocessor"
+    }
+  },
+  "161": {
+    "inputs": {
+      "Hair": false,
+      "Glasses": false,
+      "Top-clothes": false,
+      "Bottom-clothes": false,
+      "Torso-skin": true,
+      "Face": true,
+      "Left-arm": true,
+      "Right-arm": true,
+      "Left-leg": true,
+      "Right-leg": true,
+      "Left-foot": true,
+      "Right-foot": true,
+      "mask_blur": 0,
+      "mask_offset": 0,
+      "invert_output": false,
+      "background": "Alpha",
+      "background_color": "#222222",
+      "images": [
+        "4",
+        0
+      ]
+    },
+    "class_type": "BodySegment",
+    "_meta": {
+      "title": "Body Part Segmentation (RMBG)"
+    }
+  },
+  "162": {
+    "inputs": {
+      "Hat": true,
+      "Hair": false,
+      "Face": false,
+      "Sunglasses": true,
+      "Upper-clothes": true,
+      "Skirt": true,
+      "Dress": true,
+      "Belt": true,
+      "Pants": true,
+      "Left-arm": false,
+      "Right-arm": false,
+      "Left-leg": false,
+      "Right-leg": false,
+      "Bag": true,
+      "Scarf": true,
+      "Left-shoe": true,
+      "Right-shoe": true,
+      "Background": false,
+      "process_res": 1024,
+      "mask_blur": 0,
+      "mask_offset": 0,
+      "invert_output": false,
+      "background": "Alpha",
+      "background_color": "#222222",
+      "images": [
+        "4",
+        0
+      ]
+    },
+    "class_type": "ClothesSegment",
+    "_meta": {
+      "title": "Clothing Segmentation (RMBG)"
+    }
+  },
+  "164": {
+    "inputs": {
+      "Hair": true,
+      "Glasses": false,
+      "Top-clothes": false,
+      "Bottom-clothes": false,
+      "Torso-skin": false,
+      "Face": false,
+      "Left-arm": false,
+      "Right-arm": false,
+      "Left-leg": false,
+      "Right-leg": false,
+      "Left-foot": false,
+      "Right-foot": false,
+      "mask_blur": 0,
+      "mask_offset": 0,
+      "invert_output": false,
+      "background": "Alpha",
+      "background_color": "#222222",
+      "images": [
+        "4",
+        0
+      ]
+    },
+    "class_type": "BodySegment",
+    "_meta": {
+      "title": "Body Part Segmentation (RMBG)"
+    }
+  },
+  "171": {
+    "inputs": {
+      "Hat": false,
+      "Hair": false,
+      "Face": true,
+      "Sunglasses": false,
+      "Upper-clothes": false,
+      "Skirt": false,
+      "Dress": false,
+      "Belt": false,
+      "Pants": false,
+      "Left-arm": false,
+      "Right-arm": false,
+      "Left-leg": false,
+      "Right-leg": false,
+      "Bag": false,
+      "Scarf": false,
+      "Left-shoe": false,
+      "Right-shoe": false,
+      "Background": false,
+      "process_res": 1024,
+      "mask_blur": 0,
+      "mask_offset": 0,
+      "invert_output": false,
+      "background": "Alpha",
+      "background_color": "#222222",
+      "images": [
+        "4",
+        0
+      ]
+    },
+    "class_type": "ClothesSegment",
+    "_meta": {
+      "title": "Clothing Segmentation (RMBG)"
+    }
+  },
+  "231": {
+    "inputs": {
+      "seed": [
+        "232",
+        5
+      ],
+      "steps": [
+        "233",
+        0
+      ],
+      "cfg": [
+        "233",
+        2
+      ],
+      "sampler_name": [
+        "233",
+        3
+      ],
+      "scheduler": [
+        "233",
+        4
+      ],
+      "denoise": 1,
+      "lora_name": "__LEP_EVAL_LORA__",
+      "lora_strength": [
+        "347",
+        0
+      ],
+      "positive_prompt_hint": [
+        "29",
+        0
+      ],
+      "negative_prompt_hint": "",
+      "workflow_ref_json": "",
+      "model": [
+        "232",
+        0
+      ],
+      "vae": [
+        "232",
+        1
+      ],
+      "positive": [
+        "232",
+        2
+      ],
+      "negative": [
+        "232",
+        3
+      ],
+      "latent_image": [
+        "344:336",
+        0
+      ],
+      "image": [
+        "4",
+        0
+      ],
+      "clip_vision_1": [
+        "36",
+        0
+      ],
+      "clip_vision_2": [
+        "51",
+        0
+      ],
+      "mask_face": [
+        "171",
+        1
+      ],
+      "mask_main_subject": [
+        "143",
+        1
+      ],
+      "mask_skin": [
+        "161",
+        1
+      ],
+      "mask_clothing": [
+        "162",
+        1
+      ],
+      "mask_hair": [
+        "164",
+        1
+      ],
+      "aux_depth": [
+        "157",
+        0
+      ],
+      "aux_normal": [
+        "159",
+        0
+      ],
+      "aux_edge": [
+        "160",
+        0
+      ],
+      "pose_keypoint_openpose": [
+        "350",
+        1
+      ],
+      "pose_keypoint_dw": [
+        "348",
+        1
+      ],
+      "aux_densepose": [
+        "349",
+        0
+      ]
+    },
+    "class_type": "LoraEvalExtractor",
+    "_meta": {
+      "title": "LoRA Eval — Extractor"
+    }
+  },
+  "232": {
+    "inputs": {
+      "seed": [
+        "328",
+        0
+      ],
+      "steps": [
+        "233",
+        0
+      ],
+      "cfg": [
+        "233",
+        2
+      ],
+      "sampler_name": [
+        "233",
+        3
+      ],
+      "scheduler": [
+        "233",
+        4
+      ],
+      "denoise": 1,
+      "lora_name": "__LEP_EVAL_LORA__",
+      "lora_strength": [
+        "347",
+        0
+      ],
+      "model": [
+        "346",
+        0
+      ],
+      "vae": [
+        "335",
+        0
+      ],
+      "positive": [
+        "339",
+        0
+      ],
+      "negative": [
+        "39",
+        0
+      ],
+      "latent": [
+        "345",
+        0
+      ]
+    },
+    "class_type": "LoraEvalSampleGuard",
+    "_meta": {
+      "title": "LoRA Eval — Sample Guard"
+    }
+  },
+  "233": {
+    "inputs": {
+      "steps_total": 20,
+      "refiner_step": 24,
+      "cfg": 1,
+      "sampler_name": "euler",
+      "scheduler": "simple"
+    },
+    "class_type": "KSampler Config (rgthree)",
+    "_meta": {
+      "title": "KSampler Config (rgthree)"
+    }
+  },
+  "328": {
+    "inputs": {
+      "value": 0
+    },
+    "class_type": "PrimitiveInt",
+    "_meta": {
+      "title": "Int"
+    }
+  },
+  "335": {
+    "inputs": {
+      "vae_name": "flux2-vae.safetensors"
+    },
+    "class_type": "VAELoader",
+    "_meta": {
+      "title": "Load VAE"
+    }
+  },
+  "339": {
+    "inputs": {
+      "text": [
+        "29",
+        0
+      ],
+      "clip": [
+        "341",
+        0
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Positive Prompt)"
+    }
+  },
+  "341": {
+    "inputs": {
+      "clip_name": "Qwen3-8B-Q8_0.gguf",
+      "type": "flux2",
+      "predequant_token_embd": false
+    },
+    "class_type": "CLIPLoaderGGUF",
+    "_meta": {
+      "title": "CLIPLoader (GGUF)"
+    }
+  },
+  "343": {
+    "inputs": {
+      "unet_name": "flux-2-klein-base-9b-Q8_0.gguf"
+    },
+    "class_type": "UnetLoaderGGUF",
+    "_meta": {
+      "title": "Unet Loader (GGUF)"
+    }
+  },
+  "345": {
+    "inputs": {
+      "width": 1024,
+      "height": 1024,
+      "batch_size": 1
+    },
+    "class_type": "EmptyFlux2LatentImage",
+    "_meta": {
+      "title": "Empty Flux 2 Latent"
+    }
+  },
+  "346": {
+    "inputs": {
+      "lora_name": "__LEP_EVAL_LORA__",
+      "strength_model": [
+        "347",
+        0
+      ],
+      "model": [
+        "343",
+        0
+      ]
+    },
+    "class_type": "LoraLoaderModelOnly",
+    "_meta": {
+      "title": "Load LoRA"
+    }
+  },
+  "347": {
+    "inputs": {
+      "value": 0
+    },
+    "class_type": "PrimitiveFloat",
+    "_meta": {
+      "title": "Float"
+    }
+  },
+  "348": {
+    "inputs": {
+      "detect_hand": "disable",
+      "detect_body": "enable",
+      "detect_face": "disable",
+      "resolution": [
+        "355",
+        0
+      ],
+      "bbox_detector": "yolox_l.torchscript.pt",
+      "pose_estimator": "dw-ll_ucoco_384_bs5.torchscript.pt",
+      "scale_stick_for_xinsr_cn": "disable",
+      "image": [
+        "4",
+        0
+      ]
+    },
+    "class_type": "DWPreprocessor",
+    "_meta": {
+      "title": "DWPose Estimator"
+    }
+  },
+  "349": {
+    "inputs": {
+      "model": "densepose_r101_fpn_dl.torchscript",
+      "cmap": "Parula (CivitAI)",
+      "resolution": [
+        "355",
+        0
+      ],
+      "image": [
+        "4",
+        0
+      ]
+    },
+    "class_type": "DensePosePreprocessor",
+    "_meta": {
+      "title": "DensePose Estimator"
+    }
+  },
+  "350": {
+    "inputs": {
+      "detect_hand": "disable",
+      "detect_body": "enable",
+      "detect_face": "disable",
+      "resolution": [
+        "355",
+        0
+      ],
+      "scale_stick_for_xinsr_cn": "disable",
+      "image": [
+        "4",
+        0
+      ]
+    },
+    "class_type": "OpenposePreprocessor",
+    "_meta": {
+      "title": "OpenPose Pose"
+    }
+  },
+  "355": {
+    "inputs": {
+      "expression": "min(a, b)",
+      "a": [
+        "96",
+        0
+      ],
+      "b": [
+        "96",
+        1
+      ]
+    },
+    "class_type": "MathExpression|pysssss",
+    "_meta": {
+      "title": "Math Expression 🐍"
+    }
+  },
+  "344:334": {
+    "inputs": {
+      "steps": [
+        "233",
+        0
+      ],
+      "width": 1024,
+      "height": 1024
+    },
+    "class_type": "Flux2Scheduler",
+    "_meta": {
+      "title": "Flux2Scheduler"
+    }
+  },
+  "344:331": {
+    "inputs": {
+      "sampler_name": [
+        "233",
+        3
+      ]
+    },
+    "class_type": "KSamplerSelect",
+    "_meta": {
+      "title": "KSamplerSelect"
+    }
+  },
+  "344:338": {
+    "inputs": {
+      "cfg": [
+        "233",
+        2
+      ],
+      "model": [
+        "232",
+        0
+      ],
+      "positive": [
+        "232",
+        2
+      ],
+      "negative": [
+        "232",
+        3
+      ]
+    },
+    "class_type": "CFGGuider",
+    "_meta": {
+      "title": "CFGGuider"
+    }
+  },
+  "344:333": {
+    "inputs": {
+      "noise_seed": [
+        "232",
+        5
+      ]
+    },
+    "class_type": "RandomNoise",
+    "_meta": {
+      "title": "RandomNoise"
+    }
+  },
+  "344:336": {
+    "inputs": {
+      "noise": [
+        "344:333",
+        0
+      ],
+      "guider": [
+        "344:338",
+        0
+      ],
+      "sampler": [
+        "344:331",
+        0
+      ],
+      "sigmas": [
+        "344:334",
+        0
+      ],
+      "latent_image": [
+        "232",
+        4
+      ]
+    },
+    "class_type": "SamplerCustomAdvanced",
+    "_meta": {
+      "title": "SamplerCustomAdvanced"
+    }
+  }
+}

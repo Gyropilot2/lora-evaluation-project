@@ -1,0 +1,29 @@
+:root {
+  color-scheme: dark;
+  font-family: "Consolas", "Cascadia Mono", monospace;
+  background: #111;
+  color: #d7dde3;
+  line-height: 1.28;
+  font-weight: 400;
+  font-size: 12px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  background: #111;
+}
+
+button,
+input {
+  font: inherit;
+}

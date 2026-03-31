@@ -1,0 +1,151 @@
+{
+  "1": {
+    "inputs": {
+      "sample_hash": ""
+    },
+    "class_type": "LoraEvalSampleReplayLoad",
+    "_meta": {
+      "title": "LoRA Eval — Sample Replay Load"
+    }
+  },
+  "2": {
+    "inputs": {
+      "requested_paths": "pose_evidence.openpose_body\npose_evidence.dw_body",
+      "replay_sample": [
+        "1",
+        1
+      ]
+    },
+    "class_type": "LoraEvalSampleNeedsMeasurementGuard",
+    "_meta": {
+      "title": "LoRA Eval — Sample Needs Measurement Guard"
+    }
+  },
+  "3": {
+    "inputs": {
+      "replay_sample": [
+        "2",
+        0
+      ],
+      "pose_keypoint_openpose": [
+        "5",
+        1
+      ],
+      "pose_keypoint_dw": [
+        "4",
+        1
+      ],
+      "aux_densepose": [
+        "9",
+        0
+      ]
+    },
+    "class_type": "LoraEvalReplayEnricher",
+    "_meta": {
+      "title": "LoRA Eval — Replay Enricher"
+    }
+  },
+  "4": {
+    "inputs": {
+      "detect_hand": "disable",
+      "detect_body": "enable",
+      "detect_face": "disable",
+      "resolution": [
+        "6",
+        0
+      ],
+      "bbox_detector": "yolox_l.torchscript.pt",
+      "pose_estimator": "dw-ll_ucoco_384_bs5.torchscript.pt",
+      "scale_stick_for_xinsr_cn": "disable",
+      "image": [
+        "1",
+        0
+      ]
+    },
+    "class_type": "DWPreprocessor",
+    "_meta": {
+      "title": "DWPose Estimator"
+    }
+  },
+  "5": {
+    "inputs": {
+      "detect_hand": "disable",
+      "detect_body": "enable",
+      "detect_face": "disable",
+      "resolution": [
+        "6",
+        0
+      ],
+      "scale_stick_for_xinsr_cn": "disable",
+      "image": [
+        "1",
+        0
+      ]
+    },
+    "class_type": "OpenposePreprocessor",
+    "_meta": {
+      "title": "OpenPose Pose"
+    }
+  },
+  "6": {
+    "inputs": {
+      "expression": "min(a, b)",
+      "a": [
+        "7",
+        0
+      ],
+      "b": [
+        "7",
+        1
+      ]
+    },
+    "class_type": "MathExpression|pysssss",
+    "_meta": {
+      "title": "Math Expression 🐍"
+    }
+  },
+  "7": {
+    "inputs": {
+      "image": [
+        "1",
+        0
+      ]
+    },
+    "class_type": "GetImageSize+",
+    "_meta": {
+      "title": "🔧 Get Image Size"
+    }
+  },
+  "9": {
+    "inputs": {
+      "model": "densepose_r101_fpn_dl.torchscript",
+      "cmap": "Parula (CivitAI)",
+      "resolution": [
+        "6",
+        0
+      ],
+      "image": [
+        "1",
+        0
+      ]
+    },
+    "class_type": "DensePosePreprocessor",
+    "_meta": {
+      "title": "DensePose Estimator"
+    }
+  },
+  "10": {
+    "inputs": {
+      "preview": "",
+      "previewMode": null,
+      "source": [
+        "3",
+        1
+      ]
+    },
+    "class_type": "PreviewAny",
+    "_meta": {
+      "title": "Preview as Text"
+    }
+  }
+}

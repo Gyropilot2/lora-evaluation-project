@@ -1,0 +1,63 @@
+.hover-preview-trigger {
+  border: 0;
+  background: transparent;
+  color: #89c7e9;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+}
+
+.hover-preview-trigger:hover,
+.hover-preview-trigger:focus-visible {
+  color: #d8efff;
+}
+
+.hover-preview-popup {
+  position: fixed;
+  z-index: 1200;
+  width: 256px;
+  border: 1px solid #2c4b61;
+  background: #11171c;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  padding: 8px;
+}
+
+.hover-preview-popup-header {
+  color: #83d4ff;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.hover-preview-gallery {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.hover-preview-gallery.is-paired {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.hover-preview-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.hover-preview-pane-label {
+  color: #9bb7c8;
+  font-size: 0.68rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.hover-preview-image {
+  display: block;
+  width: 100%;
+  max-height: 256px;
+  object-fit: contain;
+  background: #0d1115;
+  border: 1px solid #223847;
+}
