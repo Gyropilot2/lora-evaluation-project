@@ -6,7 +6,6 @@
 ![ComfyUI Generation](https://img.shields.io/badge/ComfyUI-Generation%20runtime-E67E22)
 
 ![Baseline and LoRA comparison](screenshots/main-image-comparison.png)
-
 _Baseline vs LoRA output comparison in the Operator App._
 
 LoRA Evaluation Project is a local system for comparing LoRAs in a way that can still be inspected later. In image-generation workflows, a LoRA is a small add-on file that expands a base model's capabilities toward a specific concept, usually to cover something the base model is weak at or to make it match a very specific reference. Evaluating what a LoRA actually does is usually messy: generate a few seeds, eyeball the images, guess what the LoRA changed, try to tell whether it also bled into things it was not meant to change, and still end up unsure. This repo stores generated assets and sample measurements in a database, compares them against baselines and one another, and outputs graphs and scores for the different aspects the LoRA influenced during image generation, so you can read from measured, observable facts instead of relying on vibes.
@@ -51,7 +50,6 @@ You can change how these records are used and combined later without altering th
 No noise is introduced by the measurement process itself: under the same conditions, two identical LoRAs produce the same measurements.
 
 ![Depth comparison view](screenshots/depth-image-comparison.png)
-
 _Depth evidence view for structural comparison._
 
 ## What Review Can Answer
@@ -59,7 +57,6 @@ _Depth evidence view for structural comparison._
 "This LoRA is good" depends on the question, the goal, and the interpretation being applied. This repo ships with a provisional package of scoring procedures, but users are expected to edit the review-assembly rules to match their own goals. You can define as many scoring rules as you want, and the app will show their results side by side. These scores can then be compared across samples produced by different LoRAs and workflows.
 
 ![Metric inspection view](screenshots/inspect-metric.png)
-
 _Metric inspection view with score details and support facts._
 
 ## How It Works
